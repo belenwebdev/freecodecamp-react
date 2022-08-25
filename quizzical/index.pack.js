@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 8);
+/******/ 	return __webpack_require__(__webpack_require__.s = 11);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -264,9 +264,9 @@ process.umask = function() { return 0; };
 /* WEBPACK VAR INJECTION */(function(process) {
 
 if (process.env.NODE_ENV === 'production') {
-  module.exports = __webpack_require__(12);
+  module.exports = __webpack_require__(16);
 } else {
-  module.exports = __webpack_require__(11);
+  module.exports = __webpack_require__(15);
 }
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
@@ -370,21 +370,140 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 
 /***/ }),
 /* 3 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* WEBPACK VAR INJECTION */(function(process) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nanoid", function() { return nanoid; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "customAlphabet", function() { return customAlphabet; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "customRandom", function() { return customRandom; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "random", function() { return random; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__url_alphabet_index_js__ = __webpack_require__(12);
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "urlAlphabet", function() { return __WEBPACK_IMPORTED_MODULE_0__url_alphabet_index_js__["a"]; });
+// This file replaces `index.js` in bundlers like webpack or Rollup,
+// according to `browser` config in `package.json`.
+
+
+
+if (process.env.NODE_ENV !== 'production') {
+  // All bundlers will remove this block in the production bundle.
+  if (
+    typeof navigator !== 'undefined' &&
+    navigator.product === 'ReactNative' &&
+    typeof crypto === 'undefined'
+  ) {
+    throw new Error(
+      'React Native does not have a built-in secure random generator. ' +
+        'If you don’t need unpredictable IDs use `nanoid/non-secure`. ' +
+        'For secure IDs, import `react-native-get-random-values` ' +
+        'before Nano ID.'
+    )
+  }
+  if (typeof msCrypto !== 'undefined' && typeof crypto === 'undefined') {
+    throw new Error(
+      'Import file with `if (!window.crypto) window.crypto = window.msCrypto`' +
+        ' before importing Nano ID to fix IE 11 support'
+    )
+  }
+  if (typeof crypto === 'undefined') {
+    throw new Error(
+      'Your browser does not have secure random generator. ' +
+        'If you don’t need unpredictable IDs, you can use nanoid/non-secure.'
+    )
+  }
+}
+
+let random = bytes => crypto.getRandomValues(new Uint8Array(bytes))
+
+let customRandom = (alphabet, size, getRandom) => {
+  // First, a bitmask is necessary to generate the ID. The bitmask makes bytes
+  // values closer to the alphabet size. The bitmask calculates the closest
+  // `2^31 - 1` number, which exceeds the alphabet size.
+  // For example, the bitmask for the alphabet size 30 is 31 (00011111).
+  // `Math.clz32` is not used, because it is not available in browsers.
+  let mask = (2 << (Math.log(alphabet.length - 1) / Math.LN2)) - 1
+  // Though, the bitmask solution is not perfect since the bytes exceeding
+  // the alphabet size are refused. Therefore, to reliably generate the ID,
+  // the random bytes redundancy has to be satisfied.
+
+  // Note: every hardware random generator call is performance expensive,
+  // because the system call for entropy collection takes a lot of time.
+  // So, to avoid additional system calls, extra bytes are requested in advance.
+
+  // Next, a step determines how many random bytes to generate.
+  // The number of random bytes gets decided upon the ID size, mask,
+  // alphabet size, and magic number 1.6 (using 1.6 peaks at performance
+  // according to benchmarks).
+
+  // `-~f => Math.ceil(f)` if f is a float
+  // `-~i => i + 1` if i is an integer
+  let step = -~((1.6 * mask * size) / alphabet.length)
+
+  return () => {
+    let id = ''
+    while (true) {
+      let bytes = getRandom(step)
+      // A compact alternative for `for (var i = 0; i < step; i++)`.
+      let j = step
+      while (j--) {
+        // Adding `|| ''` refuses a random byte that exceeds the alphabet size.
+        id += alphabet[bytes[j] & mask] || ''
+        if (id.length === size) return id
+      }
+    }
+  }
+}
+
+let customAlphabet = (alphabet, size) => customRandom(alphabet, size, random)
+
+let nanoid = (size = 21) => {
+  let id = ''
+  let bytes = crypto.getRandomValues(new Uint8Array(size))
+
+  // A compact alternative for `for (var i = 0; i < step; i++)`.
+  while (size--) {
+    // It is incorrect to use bytes exceeding the alphabet size.
+    // The following mask reduces the random byte in the 0-255 value
+    // range to the 0-63 value range. Therefore, adding hacks, such
+    // as empty string fallback or magic numbers, is unneccessary because
+    // the bitmask trims bytes down to the alphabet size.
+    let byte = bytes[size] & 63
+    if (byte < 36) {
+      // `0-9a-z`
+      id += byte.toString(36)
+    } else if (byte < 62) {
+      // `A-Z`
+      id += (byte - 26).toString(36).toUpperCase()
+    } else if (byte < 63) {
+      id += '_'
+    } else {
+      id += '-'
+    }
+  }
+  return id
+}
+
+
+
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(0)))
+
+/***/ }),
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(process) {
 
 if (process.env.NODE_ENV === 'production') {
-  module.exports = __webpack_require__(16);
+  module.exports = __webpack_require__(20);
 } else {
-  module.exports = __webpack_require__(15);
+  module.exports = __webpack_require__(19);
 }
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -402,11 +521,11 @@ var _react = __webpack_require__(1);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _Game = __webpack_require__(6);
+var _Game = __webpack_require__(8);
 
 var _Game2 = _interopRequireDefault(_Game);
 
-var _Start = __webpack_require__(7);
+var _Start = __webpack_require__(10);
 
 var _Start2 = _interopRequireDefault(_Start);
 
@@ -431,7 +550,7 @@ function App() {
 }
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -469,21 +588,267 @@ if (process.env.NODE_ENV === 'production') {
   // DCE check should happen before ReactDOM bundle executes so that
   // DevTools can report bad minification during injection.
   checkDCE();
-  module.exports = __webpack_require__(10);
+  module.exports = __webpack_require__(14);
 } else {
-  module.exports = __webpack_require__(9);
+  module.exports = __webpack_require__(13);
 }
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 6 */
-/***/ (function(module, exports) {
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
 
-throw new Error("Module build failed: SyntaxError: Unexpected token (20:24)\n\n\u001b[0m \u001b[90m 18 | \u001b[39m            \u001b[33m.\u001b[39mthen(res \u001b[33m=>\u001b[39m res\u001b[33m.\u001b[39mjson())\n \u001b[90m 19 | \u001b[39m            \u001b[33m.\u001b[39mthen(data \u001b[33m=>\u001b[39m setQuestions( data\u001b[33m.\u001b[39mresults\u001b[33m.\u001b[39mmap(question \u001b[33m=>\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 20 | \u001b[39m                \u001b[36mreturn\u001b[39m {\u001b[33m...\u001b[39mquestion\u001b[33m,\u001b[39m id\u001b[33m:\u001b[39m nanoid()} \n \u001b[90m    | \u001b[39m                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 21 | \u001b[39m            })))\n \u001b[90m 22 | \u001b[39m    }\n \u001b[90m 23 | \u001b[39m    \u001b[0m\n");
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.default = Answer;
+
+var _react = __webpack_require__(1);
+
+var _react2 = _interopRequireDefault(_react);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function Answer(props) {
+
+    return _react2.default.createElement(
+        "div",
+        { className: "answer " + (props.item.isSelected ? 'selected' : ''), onClick: props.handleClick },
+        props.decodeHtml(props.item.text)
+    );
+}
 
 /***/ }),
-/* 7 */
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+exports.default = Game;
+
+var _react = __webpack_require__(1);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _nanoid = __webpack_require__(3);
+
+var _Question = __webpack_require__(9);
+
+var _Question2 = _interopRequireDefault(_Question);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function Game() {
+    var _React$useState = _react2.default.useState([]),
+        _React$useState2 = _slicedToArray(_React$useState, 2),
+        questions = _React$useState2[0],
+        setQuestions = _React$useState2[1];
+
+    var _React$useState3 = _react2.default.useState(0),
+        _React$useState4 = _slicedToArray(_React$useState3, 2),
+        score = _React$useState4[0],
+        setScore = _React$useState4[1];
+
+    var _React$useState5 = _react2.default.useState(false),
+        _React$useState6 = _slicedToArray(_React$useState5, 2),
+        missingAnswers = _React$useState6[0],
+        setMissingAnswers = _React$useState6[1];
+
+    var _React$useState7 = _react2.default.useState(false),
+        _React$useState8 = _slicedToArray(_React$useState7, 2),
+        showResults = _React$useState8[0],
+        setShowResults = _React$useState8[1];
+
+    _react2.default.useEffect(function () {
+        getNewQuestions();
+    }, []);
+
+    function getNewQuestions() {
+        fetch("https://opentdb.com/api.php?amount=10&category=9&difficulty=easy&type=multiple").then(function (res) {
+            return res.json();
+        }).then(function (data) {
+            return setQuestions(data.results.map(function (question) {
+                return _extends({}, question, { id: (0, _nanoid.nanoid)() });
+            }));
+        });
+    }
+
+    function selectAnswer(questionId, answer) {
+        setQuestions(function (prevQuestions) {
+            return prevQuestions.map(function (question) {
+                return question.id === questionId ? _extends({}, question, { selectedAnswer: answer, isCorrect: answer === question.correct_answer }) : question;
+            });
+        });
+    }
+
+    _react2.default.useEffect(function () {
+        var totalQuestions = questions.length;
+        var withSelectedAnswer = questions.filter(function (question) {
+            return question.selectedAnswer;
+        }).length;
+        setMissingAnswers(totalQuestions > withSelectedAnswer);
+    }, [questions]);
+
+    var questionElements = questions.map(function (question) {
+        return _react2.default.createElement(_Question2.default, { item: question, key: question.id, selectAnswer: selectAnswer, isSubmitted: showResults });
+    });
+    // handleClick={handleClick(answer)}
+
+    function checkResults() {
+        if (showResults) {
+            startGame();
+            return;
+        }
+        setShowResults(true);
+        setScore(questions.filter(function (question) {
+            return question.isCorrect;
+        }).length);
+    }
+
+    function startGame() {
+        setShowResults(false);
+        setMissingAnswers(true);
+        setScore(0);
+        getNewQuestions();
+    }
+
+    return _react2.default.createElement(
+        "main",
+        { className: showResults ? 'show-results' : 'hide-results' },
+        questionElements,
+        questions.length == 0 && _react2.default.createElement(
+            "h1",
+            null,
+            "Loading..."
+        ),
+        questions.length > 0 && _react2.default.createElement(
+            "div",
+            { className: "btn-wrapper" },
+            showResults && _react2.default.createElement(
+                "h3",
+                null,
+                "You scored ",
+                score,
+                "/",
+                questions.length,
+                " correct answers"
+            ),
+            _react2.default.createElement(
+                "button",
+                { className: "btn", onClick: checkResults, disabled: missingAnswers },
+                showResults ? 'New game' : 'Check answers'
+            )
+        )
+    );
+}
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+exports.default = Question;
+
+var _react = __webpack_require__(1);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _nanoid = __webpack_require__(3);
+
+var _Answer = __webpack_require__(7);
+
+var _Answer2 = _interopRequireDefault(_Answer);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function Question(props) {
+    var _React$useState = _react2.default.useState(prepareAnswers()),
+        _React$useState2 = _slicedToArray(_React$useState, 2),
+        answers = _React$useState2[0],
+        setAnswers = _React$useState2[1];
+
+    var _React$useState3 = _react2.default.useState(false),
+        _React$useState4 = _slicedToArray(_React$useState3, 2),
+        isCorrect = _React$useState4[0],
+        setIsCorrect = _React$useState4[1];
+
+    var answerElements = answers.map(function (answer) {
+        return _react2.default.createElement(_Answer2.default, { item: answer, key: answer.id, handleClick: function handleClick() {
+                selectAnswer(answer.id);
+            }, decodeHtml: decodeHtml });
+    });
+
+    function prepareAnswers() {
+        var answers = props.item.incorrect_answers.map(function (answer) {
+            return { text: answer, id: (0, _nanoid.nanoid)(), isSelected: false };
+        });
+        var rightAnswer = { text: props.item.correct_answer, id: (0, _nanoid.nanoid)(), isSelected: false };
+        var randomPosition = Math.floor(Math.random() * (answers.length + 1));
+        answers.splice(randomPosition, 0, rightAnswer);
+        return answers;
+    }
+
+    function selectAnswer(id) {
+        if (props.isSubmitted) return;
+        var selectedAnswer = answers.find(function (answer) {
+            return answer.id === id;
+        }).text;
+        setAnswers(function (oldAnswers) {
+            return oldAnswers.map(function (answer) {
+                if (answer.id === id) return _extends({}, answer, { isSelected: !answer.isSelected });else if (answer.isSelected) return _extends({}, answer, { isSelected: false });else return answer;
+            });
+        });
+        setIsCorrect(selectedAnswer === props.item.correct_answer);
+        props.selectAnswer(props.item.id, selectedAnswer);
+    }
+
+    function decodeHtml(html) {
+        var txt = document.createElement('textarea');
+        txt.innerHTML = html;
+        return txt.value;
+    }
+
+    return _react2.default.createElement(
+        "div",
+        { className: "question " + (isCorrect ? 'correct' : 'incorrect') },
+        _react2.default.createElement(
+            "h2",
+            null,
+            decodeHtml(props.item.question)
+        ),
+        _react2.default.createElement(
+            "div",
+            { className: "answers-wrapper" },
+            answerElements
+        )
+    );
+}
+
+/***/ }),
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -524,7 +889,7 @@ function Start(props) {
 }
 
 /***/ }),
-/* 8 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -534,11 +899,11 @@ var _react = __webpack_require__(1);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _reactDom = __webpack_require__(5);
+var _reactDom = __webpack_require__(6);
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
 
-var _App = __webpack_require__(4);
+var _App = __webpack_require__(5);
 
 var _App2 = _interopRequireDefault(_App);
 
@@ -547,7 +912,21 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 _reactDom2.default.render(_react2.default.createElement(_App2.default, null), document.getElementById("root"));
 
 /***/ }),
-/* 9 */
+/* 12 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return urlAlphabet; });
+// This alphabet uses `A-Za-z0-9_-` symbols. The genetic algorithm helped
+// optimize the gzip compression for this alphabet.
+let urlAlphabet =
+  'ModuleSymbhasOwnPr-0123456789ABCDEFGHNRVfgctiUvz_KqYTJkLxpZXIjQW'
+
+
+
+
+/***/ }),
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -568,8 +947,8 @@ if (process.env.NODE_ENV !== "production") {
 
 var React = __webpack_require__(1);
 var _assign = __webpack_require__(2);
-var Scheduler = __webpack_require__(3);
-var tracing = __webpack_require__(17);
+var Scheduler = __webpack_require__(4);
+var tracing = __webpack_require__(21);
 
 var ReactSharedInternals = React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 
@@ -26817,7 +27196,7 @@ exports.version = ReactVersion;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 10 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26832,7 +27211,7 @@ exports.version = ReactVersion;
 /*
  Modernizr 3.0.0pre (Custom Build) | MIT
 */
-var aa=__webpack_require__(1),m=__webpack_require__(2),r=__webpack_require__(3);function y(a){for(var b="https://reactjs.org/docs/error-decoder.html?invariant="+a,c=1;c<arguments.length;c++)b+="&args[]="+encodeURIComponent(arguments[c]);return"Minified React error #"+a+"; visit "+b+" for the full message or use the non-minified dev environment for full errors and additional helpful warnings."}if(!aa)throw Error(y(227));var ba=new Set,ca={};function da(a,b){ea(a,b);ea(a+"Capture",b)}
+var aa=__webpack_require__(1),m=__webpack_require__(2),r=__webpack_require__(4);function y(a){for(var b="https://reactjs.org/docs/error-decoder.html?invariant="+a,c=1;c<arguments.length;c++)b+="&args[]="+encodeURIComponent(arguments[c]);return"Minified React error #"+a+"; visit "+b+" for the full message or use the non-minified dev environment for full errors and additional helpful warnings."}if(!aa)throw Error(y(227));var ba=new Set,ca={};function da(a,b){ea(a,b);ea(a+"Capture",b)}
 function ea(a,b){ca[a]=b;for(a=0;a<b.length;a++)ba.add(b[a])}
 var fa=!("undefined"===typeof window||"undefined"===typeof window.document||"undefined"===typeof window.document.createElement),ha=/^[:A-Z_a-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD][:A-Z_a-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\-.0-9\u00B7\u0300-\u036F\u203F-\u2040]*$/,ia=Object.prototype.hasOwnProperty,
 ja={},ka={};function la(a){if(ia.call(ka,a))return!0;if(ia.call(ja,a))return!1;if(ha.test(a))return ka[a]=!0;ja[a]=!0;return!1}function ma(a,b,c,d){if(null!==c&&0===c.type)return!1;switch(typeof b){case "function":case "symbol":return!0;case "boolean":if(d)return!1;if(null!==c)return!c.acceptsBooleans;a=a.toLowerCase().slice(0,5);return"data-"!==a&&"aria-"!==a;default:return!1}}
@@ -27121,7 +27500,7 @@ exports.unstable_renderSubtreeIntoContainer=function(a,b,c,d){if(!rk(c))throw Er
 
 
 /***/ }),
-/* 11 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29462,7 +29841,7 @@ exports.version = ReactVersion;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 12 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29492,7 +29871,7 @@ exports.useLayoutEffect=function(a,b){return S().useLayoutEffect(a,b)};exports.u
 
 
 /***/ }),
-/* 13 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29847,7 +30226,7 @@ exports.unstable_wrap = unstable_wrap;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 14 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29863,7 +30242,7 @@ var b=0;exports.__interactionsRef=null;exports.__subscriberRef=null;exports.unst
 
 
 /***/ }),
-/* 15 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30517,7 +30896,7 @@ exports.unstable_wrapCallback = unstable_wrapCallback;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 16 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30544,16 +30923,16 @@ exports.unstable_wrapCallback=function(a){var b=P;return function(){var c=P;P=b;
 
 
 /***/ }),
-/* 17 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(process) {
 
 if (process.env.NODE_ENV === 'production') {
-  module.exports = __webpack_require__(14);
+  module.exports = __webpack_require__(18);
 } else {
-  module.exports = __webpack_require__(13);
+  module.exports = __webpack_require__(17);
 }
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
