@@ -8,7 +8,7 @@ export default function Question(props){
     const [isCorrect, setIsCorrect] = React.useState(false);
     
     const answerElements = answers.map(answer => {
-        return <Answer item={answer} key={answer.id} handleClick={()=>{selectAnswer(answer.id)}} />
+        return <Answer item={answer} key={answer.id} handleClick={()=>{selectAnswer(answer.id)}} decodeHtml={decodeHtml}/>
     });
     
     function prepareAnswers() {
@@ -33,9 +33,15 @@ export default function Question(props){
         props.selectAnswer(props.item.id, selectedAnswer);
     }
     
+    function decodeHtml(html){
+        const txt = document.createElement('textarea');
+        txt.innerHTML = html;
+        return txt.value;
+    }
+    
     return (
         <div className={`question ${isCorrect?'correct':'incorrect'}`}>
-            <h2>{props.item.question}</h2>
+            <h2>{decodeHtml(props.item.question)}</h2>
             <div className="answers-wrapper">{answerElements}</div>
         </div>
     )
