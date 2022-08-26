@@ -1,6 +1,6 @@
 import React from "react"
 
-export default function Start(props){
+function Start(props){
     
     return (
         <main className="new-game">
@@ -10,3 +10,5 @@ export default function Start(props){
         </main>
     )
 }
+
+export default Start

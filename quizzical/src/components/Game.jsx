@@ -1,8 +1,9 @@
 import React from "react"
 import {nanoid} from "nanoid"
 import Question from "./Question"
+import Confetti from 'react-confetti'
 
-export default function Game(){
+function Game(){
     
     const [questions, setQuestions] = React.useState([]);
     const [score, setScore] = React.useState(0);
@@ -14,7 +15,7 @@ export default function Game(){
     }, [])
     
     function getNewQuestions(){
-        fetch("https://opentdb.com/api.php?amount=10&category=9&difficulty=easy&type=multiple")
+        fetch("https://opentdb.com/api.php?amount=5&category=9&difficulty=easy&type=multiple")
             .then(res => res.json())
             .then(data => setQuestions( data.results.map(question => {
                 return {...question, id: nanoid()} 
@@ -52,6 +53,7 @@ export default function Game(){
     }
     
     function startGame(){
+        setQuestions([])
         setShowResults(false)
         setMissingAnswers(true)
         setScore(0)
@@ -60,6 +62,7 @@ export default function Game(){
     
     return (
         <main className={showResults?'show-results':'hide-results'}>
+            {showResults && score===questions.length && <Confetti />}
             {questionElements}
             {questions.length==0 && <h1>Loading...</h1>}
             {questions.length>0 && <div className="btn-wrapper">
@@ -71,3 +74,5 @@ export default function Game(){
         </main>
     )
 }
+
+export default Game
