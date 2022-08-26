@@ -62,7 +62,7 @@ function Game(){
     
     return (
         <main className={showResults?'show-results':'hide-results'}>
-            {showResults && score===questions.length && <Confetti />}
+            {showResults && score===questions.length && <div className="confetti"><Confetti /></div>}
             {questionElements}
             {questions.length==0 && <h1>Loading...</h1>}
             {questions.length>0 && <div className="btn-wrapper">
